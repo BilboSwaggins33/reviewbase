@@ -8,9 +8,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.7.1",
+    "@emotion/styled": "^11.6.0",
+    "@fontsource/chivo": "^4.5.0",
+    "@fontsource/montserrat": "^4.5.1",
+    "@fontsource/open-sans": "^4.5.2",
+    "@fontsource/roboto": "^4.5.1",
+    "@google-cloud/automl": "^2.5.2",
+    "@google-cloud/language": "^4.3.2",
+    "@mui/icons-material": "^5.2.5",
+    "@mui/lab": "^5.0.0-alpha.62",
+    "@mui/material": "^5.2.6",
+    "dayjs": "^1.10.7",
+    "mapbox-gl": "^2.6.1",
+    "monkeylearn": "^3.4.0",
     "next": "12.0.7",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "recharts": "^2.1.8",
+    "selenium-webdriver": "^4.1.0"
   },
   "devDependencies": {
     "eslint": "8.5.0",
