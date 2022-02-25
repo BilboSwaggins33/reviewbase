@@ -1,11 +1,10 @@
 const { Builder, By, Key, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const language = require('@google-cloud/language')
+const util = require('util')
 
 const dayjs = require('dayjs')
 const client = new language.LanguageServiceClient();
-
-
 
 async function getYelp(link) {
   let driver = await new Builder()
@@ -32,7 +31,7 @@ async function getYelp(link) {
       }
     }
     let pgnum = 0;
-    while (pgnum < 3) {
+    while (pgnum < 8) {
       if ((await driver.findElements(By.css('a.css-1pxws0l > span.icon--24-chevron-right-v2')))
         .length > 0) {
         let r = await driver.findElements(By.css('section.margin-t4__09f24__G0VVf > div.css-79elbk > div.border-color--default__09f24__NPAKY > ul.list__09f24__ynIEd > li.margin-b5__09f24__pTvws'))
@@ -78,7 +77,7 @@ async function getFacebook(id) {
 //fsq37lF3n3HWYpUL0ukhkohgL9TvX+iTqIarshXqsTzc6NQ=
 
 async function getSentiments(text, data) {
-  let token = "ya29.c.b0AXv0zTNM4WJ-8jAtmZw1-QWziHcecWNyWPXVNpfVS2S2TYZ60nuBTfl5Gw8xOuXj9AApg1U1BpRxUus7wYiF8WzK_HePTVW4TZBNk4Vrex3Vme_KJ5a8VmaOOG0dshEISZXitkrtq5TmfqsKF9fMiaTuKMJihwvc3e5p6p4NhRxwXpyHUSlwX5nE7evvilNDpfJrYit944dc3Y-kOETBw2gVL46Wk-0"
+  let token = "ya29.c.b0AXv0zTOdQ0mxR_Sb-sYQsLymtLWcZZTGP_coLFFTkbinFtVEqGy3VGyDREwByFB6ynAgtRAhu9JqRSAffA6eb5zfkZTrxNI9iz02gtMFQmhW7Exfm67ylVoJY8ucLA1fBG8RBnNu4nxFtgkhW803YElPhXV_26iiWsjfVks6FJYJTcQB7-YFMHaEL8Dgc_rQ4iQ9X34NO4l1u53G3SWSLY2oJvya14s"
   let r = []
 
 
@@ -98,7 +97,7 @@ async function getSentiments(text, data) {
     const [result] = await client.analyzeSentiment({ document });
     const sentiment = result.documentSentiment;
 
-    await r.push(await fetch("https://automl.googleapis.com/v1/projects/648327630208/locations/us-central1/models/TCN8723223988588773376:predict", {
+    r.push(await fetch("https://automl.googleapis.com/v1/projects/648327630208/locations/us-central1/models/TCN8723223988588773376:predict", {
       body: JSON.stringify(request),
       headers: {
         Authorization: "Bearer " + token,
@@ -115,26 +114,16 @@ async function getSentiments(text, data) {
     })
 
   }
-  /*
-  const sentences = result.sentences;
-  sentences.forEach(sentence => {
-    console.log(`Sentence: ${sentence.text.content}`);
-    console.log(`  Score: ${sentence.sentiment.score}`);
-    console.log(`  Magnitude: ${sentence.sentiment.magnitude}`);
-  })
-  */
   return r
-  //console.log('results', r)
 }
 
 export default async function handler(req, res) {
   console.log('server received data', JSON.parse(req.body))
   let r = JSON.parse(req.body)
-
   let googleResults = await fetch('https://maps.googleapis.com/maps/api/place/details/json?&place_id=' + r.id + '&key=AIzaSyD6HHEoQxMf4DdO3jQizp82PsqSZLCvysk')
     .then((res) => { return res.json() })
   let fsqkey = 'fsq37lF3n3HWYpUL0ukhkohgL9TvX+iTqIarshXqsTzc6NQ='
-  let fsqQ = await fetch('https://api.foursquare.com/v3/places/nearby?query=' + r.name + '&ll=' + r.coord.lat + '%2C' + r.coord.lng,
+  let fsqQ = await fetch('https://api.foursquare.com/v3/places/nearby?query=' + r.name.replace(/[^\x00-\x7F]/g, "") + '&ll=' + r.coord.lat + '%2C' + r.coord.lng,
     { headers: { Authorization: fsqkey, Accept: 'application/json' } })
     .then((res) => { return res.json() })
   let fsqID = fsqQ.results[0].fsq_id
@@ -152,7 +141,7 @@ export default async function handler(req, res) {
 
 
   let yelpKey = 'NWPuMipO3e0zELe4ezzvSoNWOrU2iQSOlBheu3vrWYclXhFGd2YpM5KH0dVZD-FzvyssUvFZKm6gsRRYj8r0QPriySJPghc3pGDteL_8aSLbSROZvxm5gOqUJaTbYXYx'
-  let yelpQ = await fetch('https://api.yelp.com/v3/businesses/search?&term=' + r.name + '&location=' + r.address, {
+  let yelpQ = await fetch('https://api.yelp.com/v3/businesses/search?&term=' + r.name.replace(/[^\x00-\x7F]/g, "") + '&location=' + r.address, {
     headers: {
       Authorization: 'Bearer ' + yelpKey
     }
@@ -177,10 +166,12 @@ export default async function handler(req, res) {
   let data = [...yelpResults.reviews, ...googleResults.result.reviews, ...fsqReviews]
 
   let classifications = await getSentiments(textData, data)
-  //console.log(data)
-
+  //console.log(util.inspect(classifications, { showHidden: false, depth: null, colors: true }))
+  //let classifications = []
   res.status(200).json({ yelpResults: yelpResults, googleResults: googleResults, fsqResults: fsqDetails, classifications: classifications })
 }
+
+
 /*
 const ml = new MonkeyLearn('7d1ae28483506d069e793c1268546a172206b45a')
 let classify_id = 'cl_2GjdFLSK'

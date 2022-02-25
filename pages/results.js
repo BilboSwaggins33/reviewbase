@@ -1,4 +1,4 @@
-import { Box, styled, Typography, IconButton, InputBase, AppBar, Toolbar, Button, Stack, Paper, Divider, Card, Rating, Chip, CardContent } from "@mui/material"
+import { Box, styled, Typography, IconButton, InputBase, AppBar, Toolbar, Button, Stack, Paper, Divider, Card, Rating, Chip, CardContent, Select, MenuItem, FormControl } from "@mui/material"
 import { useRouter } from 'next/router'
 import { useState, useEffect } from "react"
 import ArticleSharpIcon from '@mui/icons-material/Article';
@@ -8,15 +8,19 @@ import mapboxgl from 'mapbox-gl'
 import "@fontsource/open-sans"
 
 
+
 export default function Results(props) {
     const [pageIsMounted, setPageIsMounted] = useState(false)
     const [query, setQuery] = useState("")
     const [location, setLocation] = useState("")
+    const [sort, setSort] = useState("Relevance")
+    const [data, setData] = useState(props.temp.results.results)
     const router = useRouter()
     //const data = props.data
     mapboxgl.accessToken = "pk.eyJ1IjoiYmkxYjBiYWciLCJhIjoiY2t4dHFzNGFrNjBwaDMwcGZuMmRtamZ2MiJ9.8Bcuj6FepvrA8HxIaNw2wQ"
 
-    const data = props.temp.results.results
+    //const ogdata = props.temp.results.results
+    //var data = props.temp.results.results
     const request = props.query
     useEffect(() => {
         //mapbox://styles/bi1b0bag/ckxtv7l1l2pq814lkacy57lsb
@@ -44,6 +48,21 @@ export default function Results(props) {
         e.preventDefault()
         router.push({ pathname: '/loading', query: { q: query, l: location } })
     }
+
+    const handleChange = (event) => {
+        setSort(event.target.value);
+        if (event.target.value == "Relevance") {
+            setData(props.temp.results.results)
+        } else if (event.target.value == "Highest") {
+            setData([...data].sort((a, b) => b.rating - a.rating))
+        } else if (event.target.value == "Lowest") {
+            setData([...data].sort((a, b) => a.rating - b.rating))
+        } else if (event.target.value == "Most") {
+            setData([...data].sort((a, b) => b.user_ratings_total - a.user_ratings_total))
+        } else if (event.target.value == "Least") {
+            setData([...data].sort((a, b) => a.user_ratings_total - b.user_ratings_total))
+        }
+    };
 
     return (
         <Box>
@@ -92,7 +111,24 @@ export default function Results(props) {
                     <Box sx={{ p: '30px', overflow: 'auto', width: '1250px', height: '94vh', float: 'left' }}>
                         <Box>
                             <Typography variant="h4" component="div" color='#303030' sx={{ fontFamily: 'Open Sans' }}>Search Results</Typography>
-                            <Typography variant="h5" component="div" color='#303030' sx={{ fontFamily: 'Open Sans' }}>{request.q}, {request.l}</Typography>
+                            <Typography variant="h5" component="div" color='#303030' sx={{ fontFamily: 'Open Sans' }}>{request.q}, {request.l != "" ? request.l : "nearby"}</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', mt: '15px' }}>
+                            <Typography variant='h6' sx={{ fontFamily: 'Open Sans', color: '#555555' }}>Sort by: </Typography>
+                            <FormControl sx={{ minWidth: 120, marginX: '15px' }}>
+                                <Select
+                                    value={sort}
+                                    onChange={handleChange}
+                                    sx={{ fontFamily: 'Open Sans', height: '35px', color: '#555555' }}
+                                    variant="outlined"
+                                >
+                                    <MenuItem value="Relevance" sx={{ fontFamily: 'Open Sans' }}>Relevance</MenuItem>
+                                    <MenuItem value="Highest" sx={{ fontFamily: 'Open Sans' }}>Highest Rated</MenuItem>
+                                    <MenuItem value="Lowest" sx={{ fontFamily: 'Open Sans' }}>Lowest Rated</MenuItem>
+                                    <MenuItem value="Most" sx={{ fontFamily: 'Open Sans' }}>Most Reviewed</MenuItem>
+                                    <MenuItem value="Least" sx={{ fontFamily: 'Open Sans' }}>Least Reviewed</MenuItem>
+                                </Select>
+                            </FormControl>
                         </Box>
                         {data.map((r, i) => (
                             <Button variant='outlined' onClick={() => { router.push({ pathname: '/review', query: { state: JSON.stringify(r) } }) }}
@@ -139,6 +175,8 @@ const SearchTextField = styled(InputBase)({
 })
 
 
+
+
 export async function getServerSideProps(context) {
     const res = await fetch(`http://localhost:3000/api/search`, {
         body: JSON.stringify(context.query),
@@ -153,7 +191,7 @@ export async function getServerSideProps(context) {
             },
         }
     }
-    console.log(temp.results.results[0])
+    //console.log(temp.results.results)
     let data = { temp, query: context.query }
     //console.log('data', data)
     return {
