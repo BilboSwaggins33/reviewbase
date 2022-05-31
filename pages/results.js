@@ -89,7 +89,7 @@ export default function Results(props) {
                             </IconButton>
                             <form id="inputs" autoComplete='off' onSubmit={handleSubmit} spellCheck="false">
                                 <Paper elevation={0} className="App-search" sx={{ backgroundColor: '#fff', height: '50px', alignItems: 'center', display: 'flex' }}>
-                                    <SearchTextField variant="standard" placeholder="Find a Restaurant..." sx={{ width: '250px', marginX: '25px' }} name="query" onChange={(event) => setQuery(event.target.value)} />
+                                    <SearchTextField variant="standard" placeholder="Find a Restaurant..." sx={{ width: '50vw', marginX: '25px' }} name="query" onChange={(event) => setQuery(event.target.value)} />
                                     <Divider orientation='vertical' flexItem variant='middle' color='#fff' />
 
                                     <SearchTextField variant="standard" placeholder="Location..." sx={{ width: '250px', marginX: '25px' }} name="queryLoc" onChange={(event) => setLocation(event.target.value)} />
@@ -102,13 +102,12 @@ export default function Results(props) {
                             <Stack direction='row' spacing='40px'>
                                 <Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { router.push({ pathname: '/home' }) }}>home</Button>
                                 <Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { router.push({ pathname: '/about' }) }}>about</Button>
-                                <Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { handleContact }}>contact</Button>
                             </Stack>
                         </Toolbar>
                     </AppBar>
                 </Box>
                 <Box sx={{ backgroundColor: 'white', display: 'flex' }}>
-                    <Box sx={{ p: '30px', overflow: 'auto', width: '1250px', height: '94vh', float: 'left' }}>
+                    <Box sx={{ p: '30px', overflow: 'auto', width: '100vw', height: '94vh', float: 'left' }}>
                         <Box>
                             <Typography variant="h4" component="div" color='#303030' sx={{ fontFamily: 'Open Sans' }}>Search Results</Typography>
                             <Typography variant="h5" component="div" color='#303030' sx={{ fontFamily: 'Open Sans' }}>{request.q}, {request.l != "" ? request.l : "nearby"}</Typography>
@@ -131,7 +130,7 @@ export default function Results(props) {
                             </FormControl>
                         </Box>
                         {data.map((r, i) => (
-                            <Button variant='outlined' onClick={() => { router.push({ pathname: '/review', query: { state: JSON.stringify(r) } }) }}
+                            <Button variant='outlined' onClick={() => { router.push({ pathname: '/loadingReviews', query: { state: JSON.stringify(r) } }) }}
                                 sx={{
                                     marginY: '20px', textTransform: 'none', color: '#d8d8d8', borderColor: '#e0e0e0', borderWidth: '1.5px',
                                     '&:hover': { backgroundColor: '#f8f8f8', borderColor: '#e0e0e0', borderWidth: '1.5px' }
@@ -140,9 +139,9 @@ export default function Results(props) {
                                     <Typography sx={{ fontFamily: 'Open Sans', color: '#303030' }} color="#1c1d24" variant='h6'>{r.name}</Typography>
                                     <Box sx={{ marginY: '4px', display: 'flex' }}>
                                         <Rating name="read-only" value={r.rating} readOnly precision={0.1} />
-                                        <Typography sx={{ fontFamily: 'Open Sans', color: '#303030', marginX: '5px' }} color="#1c1d24" variant='subtitle1'>{r.user_ratings_total}</Typography>
+                                        <Typography sx={{ fontFamily: 'Open Sans', color: '#777777', marginX: '5px' }} variant='subtitle1'>{r.user_ratings_total} Google Reviews</Typography>
                                     </Box>
-                                    <Typography sx={{ fontFamily: 'Open Sans', color: '#303030', marginY: '4px' }} color="#1c1d24" variant='subtitle1'>{r.formatted_address}</Typography>
+                                    <Typography sx={{ fontFamily: 'Open Sans', color: '#303030', mb: '4px' }} color="#1c1d24" variant='subtitle1'>{r.formatted_address}</Typography>
                                     <Stack direction='row' spacing='10px'>
                                         {r.types.slice(0, 4).map((r) => (
                                             <Chip label={r.split('_').join(' ')} variant="outlined" />

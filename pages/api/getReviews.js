@@ -1,4 +1,7 @@
+import { delayed } from 'selenium-webdriver/lib/promise';
+
 const { Builder, By, Key, until } = require('selenium-webdriver');
+const { GoogleAuth } = require('google-auth-library')
 const chrome = require('selenium-webdriver/chrome');
 const language = require('@google-cloud/language')
 const util = require('util')
@@ -7,21 +10,17 @@ const dayjs = require('dayjs')
 const client = new language.LanguageServiceClient();
 
 async function getYelp(link) {
-  let driver = await new Builder()
-    .forBrowser('chrome')
-    .setChromeOptions(new chrome.Options()
-      .headless())
-    .build()
+  let driver = await new Builder().forBrowser('chrome').setChromeOptions(new chrome.Options().headless()).build()
   //let driver = await new Builder().forBrowser('chrome').build()
   console.log(link)
   try {
     // Navigate to Url
     await driver.get(link)
-    await driver.wait(until.elementLocated(By.css('img.css-xlzvdl')))
+    await driver.wait(until.elementLocated(By.css('.i-stars__09f24__foihJ')))
     let overall = await driver.findElement(By.css('.i-stars__09f24__foihJ'))
     let exists = await driver.findElement(By.css('.css-1yy09vp')).then(function (state) { return true }, function (err) { return false })
 
-    let numreviews = exists ? await driver.findElement(By.css('.css-1yy09vp')) : await driver.findElement(By.css('.css-1h7ysrc'))
+    let numreviews = exists ? await driver.findElement(By.css('.css-1yy09vp')) : await driver.findElement(By.css('.css-1fdy0l5'))
 
     let results = {
       reviews: [],
@@ -32,15 +31,16 @@ async function getYelp(link) {
     }
     let pgnum = 0;
     while (pgnum < 8) {
-      if ((await driver.findElements(By.css('a.css-1pxws0l > span.icon--24-chevron-right-v2')))
-        .length > 0) {
+      if ((await driver.findElements(By.css('a.css-144i0wq > span.icon--24-chevron-right-v2'))).length > 0) {
+        await driver.wait(until.elementLocated(By.css('img.css-xlzvdl')))
         let r = await driver.findElements(By.css('section.margin-t4__09f24__G0VVf > div.css-79elbk > div.border-color--default__09f24__NPAKY > ul.list__09f24__ynIEd > li.margin-b5__09f24__pTvws'))
         for (let i = 0; i < r.length; i++) {
-          let rtemp = await r[i].findElement(By.css('.css-1sufhje > .raw__09f24__T4Ezm'));
+          let rtemp = await r[i].findElement(By.css('.css-qgunke > .raw__09f24__T4Ezm'));
           let stemp = await r[i].findElement(By.css('div.margin-t1__09f24__w96jn > div.arrange__09f24__LDfbs > div.arrange-unit__09f24__rqHTg > span.display--inline__09f24__c6N_k > div.i-stars__09f24__foihJ'))
-          let dtemp = await r[i].findElement(By.css('div.margin-b1-5__09f24__NHcQi > div.arrange__09f24__LDfbs > div.arrange-unit__09f24__rqHTg > span.css-1e4fdj9'))
+          let dtemp = await r[i].findElement(By.css('div.margin-b1-5__09f24__NHcQi > div.arrange__09f24__LDfbs > div.arrange-unit__09f24__rqHTg > span.css-chan6m'))
           let itemp = await r[i].findElement(By.css('img.css-xlzvdl'))
-          let utemp = await r[i].findElement(By.css('span.css-1iikwpv > a.css-1422juy'))
+          let utemp = await r[i].findElement(By.css('span.css-ux5mu6 > a.css-1m051bw'))
+          console.log(await utemp.getText())
           results.reviews.push({
             'review': await rtemp.getText(),
             'rating': await stemp.getAttribute("aria-label"),
@@ -50,9 +50,9 @@ async function getYelp(link) {
           })
         }
         pgnum++
-        let button = await driver.findElement(By.css('a.css-1pxws0l > span.icon--24-chevron-right-v2'))
+        let button = driver.findElement(By.css('a.css-144i0wq > span.icon--24-chevron-right-v2'))
         await button.click()
-        await new Promise(resolve => setTimeout(resolve, 750));
+        await new Promise(resolve => setTimeout(resolve, 800))
       } else {
         break
       }
@@ -77,7 +77,11 @@ async function getFacebook(id) {
 //fsq37lF3n3HWYpUL0ukhkohgL9TvX+iTqIarshXqsTzc6NQ=
 
 async function getSentiments(text, data) {
-  let token = "ya29.c.b0AXv0zTOdQ0mxR_Sb-sYQsLymtLWcZZTGP_coLFFTkbinFtVEqGy3VGyDREwByFB6ynAgtRAhu9JqRSAffA6eb5zfkZTrxNI9iz02gtMFQmhW7Exfm67ylVoJY8ucLA1fBG8RBnNu4nxFtgkhW803YElPhXV_26iiWsjfVks6FJYJTcQB7-YFMHaEL8Dgc_rQ4iQ9X34NO4l1u53G3SWSLY2oJvya14s"
+  const auth = new GoogleAuth({
+    scopes: 'https://www.googleapis.com/auth/cloud-platform'
+  });
+  const token = await auth.getAccessToken()
+  console.log(token)
   let r = []
 
 
@@ -100,11 +104,13 @@ async function getSentiments(text, data) {
     r.push(await fetch("https://automl.googleapis.com/v1/projects/648327630208/locations/us-central1/models/TCN8723223988588773376:predict", {
       body: JSON.stringify(request),
       headers: {
-        Authorization: "Bearer " + token,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       },
       method: "POST"
-    }).then((res) => res.json()).then((res) => { return res.payload }))
+    }).then((res) => res.json()).then((res) => {
+      return res.payload
+    }))
     //console.log(JSON.stringify(r))
     r[t].unshift({
       'score': sentiment.score, 'magnitude': sentiment.magnitude,

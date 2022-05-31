@@ -27,6 +27,9 @@ export default function Review(props) {
   const [totalReviews, setTotalReviews] = useState(0)
   const [activeIndex, setActiveIndex] = useState(0)
   const [sort, setSort] = useState("")
+  const [count, setCount] = useState({ prev: 0, next: 10 })
+  const [hasMore, setHasMore] = useState(true)
+  const [current, setCurrent] = useState(props.yelpResults.reviews.slice(count.prev, count.next))
 
   let googleData = props.googleResults.result
   let yelpData = props.yelpResults
@@ -845,6 +848,18 @@ export default function Review(props) {
     }
   ]
 
+  const getMoreData = () => {
+    console.log(current)
+    if (current.length === yelpData.reviews.length) {
+      setHasMore(false);
+      return
+    }
+    setTimeout(() => {
+      setCurrent(current.concat(yelpData.reviews.slice(count.prev + 10, count.next + 10)))
+    }, 1000)
+    setCount((prevState) => ({ prev: prevState.prev + 10, next: prevState.next + 10 }))
+  }
+
   const sortOptions = [
     'Highest rated',
     'Lowest rated',
@@ -892,20 +907,25 @@ export default function Review(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    router.push({ pathname: '/results', query: { q: query, l: location } })
+    router.push({ pathname: '/loading', query: { q: query, l: location } })
   }
   const handleChange = (event, newValue) => {
+    setCount({ prev: 0, next: 10 })
+    setCurrent(props.yelpResults.reviews.slice(count.prev, count.next))
+    setHasMore(true)
     setValue(newValue);
   };
   const handleSortChange = (event) => {
     setSort(event.target.value)
+    setHasMore(true)
+    setCount({ prev: 0, next: 10 })
 
     if (event.target.value == "Highest") {
-      yelpData.reviews = [...yelpData.reviews].sort((a, b) => b.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v); })[0] - a.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v); })[0])
+      setCurrent((props.yelpResults.reviews.sort((a, b) => b.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v) })[0] - a.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v); })[0])).slice(count.prev, count.next))
       googleData.reviews = [...googleData.reviews].sort((a, b) => b.rating - a.rating)
 
     } else if (event.target.value == "Lowest") {
-      yelpData.reviews = [...yelpData.reviews].sort((a, b) => a.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v); })[0] - b.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v); })[0])
+      setCurrent((props.yelpResults.reviews.sort((a, b) => a.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v); })[0] - b.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v); })[0])).slice(count.prev, count.next))
       googleData.reviews = [...googleData.reviews].sort((a, b) => a.rating - b.rating)
 
     } else if (event.target.value == "Newest") {
@@ -932,7 +952,7 @@ export default function Review(props) {
           }
         }
       )
-      yelpData.reviews = [...yelpData.reviews].sort((a, b) => new Date(b.date) - new Date(a.date))
+      setCurrent((props.yelpResults.reviews.sort((a, b) => new Date(b.date) - new Date(a.date))).slice(count.prev, count.next))
       fsqData.tips = [...fsqData.tips].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
     } else if (event.target.value == "Oldest") {
@@ -959,7 +979,7 @@ export default function Review(props) {
           }
         }
       )
-      yelpData.reviews = [...yelpData.reviews].sort((a, b) => new Date(a.date) - new Date(b.date))
+      setCurrent((props.yelpResults.reviews.sort((a, b) => new Date(a.date) - new Date(b.date))).slice(count.prev, count.next))
       fsqData.tips = [...fsqData.tips].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     }
 
@@ -996,7 +1016,6 @@ export default function Review(props) {
   };
 
   const CustomTooltip = ({ active, payload, label }) => {
-    //console.log(dayjs("12/02/2014").valueOf())
     if (active && payload) {
       return (
         <div className="custom-tooltip" style={{ backgroundColor: '#f3f3f3', opacity: '0.75', color: '#171717', padding: '5px' }}>
@@ -1010,10 +1029,8 @@ export default function Review(props) {
   };
 
   const onMouseEnter = useCallback((data, index) => {
-    //console.log(util.inspect(classifications, { showHidden: false, depth: null, colors: true }))
     setActiveIndex(index);
   }, []);
-  //TODO:  Facebook review, Custom Tooltip for line chart
   return (
     <Box>
       <Head>
@@ -1053,7 +1070,6 @@ export default function Review(props) {
             <Stack direction='row' spacing='40px'>
               <Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { router.push({ pathname: '/home' }) }}>home</Button>
               <Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { router.push({ pathname: '/about' }) }}>about</Button>
-              <Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { handleContact }}>contact</Button>
             </Stack>
           </Toolbar>
         </AppBar>
@@ -1068,7 +1084,7 @@ export default function Review(props) {
       <Box sx={{ justifyContent: 'center', display: 'flex', alignContent: 'flex-start' }}>
 
         <Box sx={{ marginX: '30px' }}>
-          <Box sx={{ paddingY: '4vh' }}>
+          <Box sx={{ paddingY: '3vh' }}>
             <Typography variant="h3" sx={{ fontFamily: 'Open Sans', fontWeight: '900' }}>{googleData.name}</Typography>
             <Typography variant="h5" sx={{ fontFamily: 'Open Sans', paddingY: '10px' }}>{googleData.formatted_address}</Typography>
             <Box sx={{ marginY: '20px' }}>
@@ -1148,7 +1164,7 @@ export default function Review(props) {
         </Box>
 
 
-        <Box sx={{ margin: '40px' }}>
+        <Box sx={{ marginX: '40px', marginY: '3vh' }}>
           <Typography variant="h5" sx={{ fontFamily: 'Open Sans', color: '#666666' }}>Reviews</Typography>
           <Box sx={{ display: 'flex', mb: '20px' }}>
             <Typography variant="h6" sx={{ fontFamily: 'Open Sans', color: '#666666' }}>Sort by:</Typography>
@@ -1174,8 +1190,12 @@ export default function Review(props) {
             </StyledTabList>
             <TabPanel value="1" >
               <Box>
-                <InfiniteScroll dataLength={1}>
-                  {yelpData.reviews.map((r, i) => (
+                <InfiniteScroll dataLength={current.length}
+                  next={getMoreData}
+                  hasMore={hasMore}
+                  loader={<h4>Loading....</h4>}
+                >
+                  {current && current.map((r, i) => (
                     <Card variant='outlined' sx={{ marginY: '3vh', p: '15px', width: '20vw' }} key={i}>
                       <CardContent>
                         <Box sx={{ display: 'flex' }}>
@@ -1292,25 +1312,8 @@ export async function getServerSideProps(context) {
   }
 
   return {
-    props: data, // will be passed to the page component as props
+    props: data,
   }
 }
 
-/*
-{yelpData.reviews.map((r, i) => (
-                    <Card variant='outlined' sx={{ marginY: '3vh', p: '15px', width: '20vw' }} key={i}>
-                      <CardContent>
-                        <Box sx={{ display: 'flex' }}>
-                          <img src={r.img} style={{ width: '45px', height: '45px', borderRadius: '50%' }}></img>
-                          <Box sx={{ marginX: '10px' }}>
-                            <Typography variant='body1' sx={{ fontFamily: 'Open Sans' }}>{r.user}</Typography>
-                            <Typography variant='caption' sx={{ fontFamily: 'Open Sans' }}>{(r.date).slice(0, 10)}</Typography>
-                          </Box>
-                        </Box>
-                        <Rating value={r.rating.match(/[+-]?\d+(\.\d+)?/g).map(function (v) { return parseFloat(v); })[0]} readOnly precision={0.1} sx={{ marginY: '10px' }} />
-                        <Typography variant='body2' sx={{ fontFamily: 'Open Sans', marginY: '15px' }}>{r.review}</Typography>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  */
 

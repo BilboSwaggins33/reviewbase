@@ -16,7 +16,7 @@ export default function Home(props) {
         e.preventDefault()
         //const result = await res.json()
 
-        router.push({ pathname: '/results', query: { q: query, l: location } })
+        router.push({ pathname: '/loading', query: { q: query, l: location } })
     }
     //#bee1dc
     //<Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { router.push({ pathname: '/about' }) }}>about</Button>
@@ -38,6 +38,7 @@ export default function Home(props) {
                         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}></Typography>
                         <Stack direction='row' spacing='40px'>
                             <Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { router.push({ pathname: '/home' }) }}>home</Button>
+                            <Button variant="text" sx={{ fontFamily: 'Open Sans', textTransform: 'none', fontSize: '25px', color: '#3c0008' }} onClick={() => { router.push({ pathname: '/about' }) }}>about</Button>
                         </Stack>
                     </Toolbar>
                 </AppBar>
@@ -50,16 +51,16 @@ export default function Home(props) {
                             <SearchTextField startAdornment={<InputAdornment position="start">
                                 <RestaurantIcon sx={{ color: '#303030' }} />
                             </InputAdornment>}
-                                variant="standard" placeholder="Find a Restaurant..." sx={{ width: '300px', marginX: '25px' }} name="query" onChange={(e) => setQuery(e.target.value)} />
+                                variant="standard" placeholder="Find a Restaurant..." sx={{ width: '40vw', marginX: '2vw' }} name="query" onChange={(e) => setQuery(e.target.value)} />
                             <Divider orientation='vertical' flexItem variant='middle' color='#fff' />
 
                             <SearchTextField startAdornment={<InputAdornment position="start">
                                 <LocationOnIcon sx={{ color: '#303030' }} />
                             </InputAdornment>}
-                                variant="standard" placeholder="Location..." sx={{ width: '300px', marginX: '25px' }} name="queryLoc" onChange={(e) => setLocation(e.target.value)} />
+                                variant="standard" placeholder="Location..." sx={{ width: '40vw', marginX: '2vw' }} name="queryLoc" onChange={(e) => setLocation(e.target.value)} />
 
                             <Divider orientation='vertical' flexItem variant='middle' color='#fff' />
-                            <IconButton type="submit" sx={{ color: '#303030', marginX: '15px' }}><SearchIcon /></IconButton>
+                            <IconButton type="submit" sx={{ color: '#303030', marginX: '5px' }}><SearchIcon /></IconButton>
                         </Paper>
                     </form>
                 </Box>

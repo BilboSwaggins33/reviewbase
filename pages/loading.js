@@ -1,4 +1,4 @@
-import { Box, styled, Typography, IconButton, InputBase, AppBar, Toolbar, Button, Stack, Paper, Divider, Card, Rating, Chip } from "@mui/material"
+import { Box, CircularProgress } from "@mui/material"
 import { useRouter } from 'next/router'
 import { useState, useEffect } from "react"
 export default function Loading(props) {
@@ -6,9 +6,13 @@ export default function Loading(props) {
     useEffect(() => {
         router.push({ pathname: '/results', query: { q: props.q, l: props.l } })
     }, [])
-    return (<Box>
-        Loading
-    </Box>)
+    return (
+        <Box sx={{ display: 'flex', justifyContent: "center", alignItems: "center", color: "#3c0008" }}>
+            <Box sx={{ top: '50%', transform: 'translateY(-50%)', position: 'absolute', margin: 0 }}>
+                <CircularProgress color="inherit" size={100} />
+            </Box>
+        </Box>
+    )
 }
 
 export async function getServerSideProps(context) {
